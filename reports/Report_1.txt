@@ -1,0 +1,14 @@
+Q1: What are Orphan and Zombie processes?
+Orphan Process:
+A process which is yet to complete its execution while the parent of the same has already finished the execution is known as Orphan Process.
+After the parent process dies the init process takes care of this process.
+
+Zombie Process:
+A process which has finished its execution but has an entry in the process table which is then reported to parent process.
+The parent process reads the exit status of child and removes it from process table.
+If parent exits before childe process the return code is then collected by init process.
+
+
+Q2: What are the changes that occur when the child process calls the exec system call to execute a new program?
+The exec funcion system call replaces the current process with the new process and executes the specified program from the entry point.
+After executing the program the control is not returned to the calling process.
