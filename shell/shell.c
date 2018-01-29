@@ -38,6 +38,7 @@ const	struct	cmdent	cmdtab[] = {
 #endif /* MMU */
   {"?",		FALSE,	xsh_help},
 {"hello", FALSE, xsh_hello},
+{"process_ring", FALSE, xsh_process_ring},
 {"tester", FALSE, xsh_tester}
 };
 

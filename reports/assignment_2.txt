@@ -1,0 +1,11 @@
+1.What are 2 things that you learned from this assignment?
+I got the knowledge about how the processes are called and work in the system and how the execution of the same is carried out throughout the program execution.
+In concurrent programming the use of shared variables as well as procedures should be carried out carefully so that the value changed by one process does not have any affect on the value changing by any other process in future.
+
+
+2.What are 2 mistakes that you made in this assignment, and how did you discover and fix these mistakes?
+I didn't allowed the the parent process to wait until the child process completely executes its function and hence even though the output was correct the terminal displayed 'xsh$' in middle of output.
+I ran the program for synchronization without the semaphore which allows the whole process to get executed and hence the program went in state of deadlock
+
+3.If you were restarting this assignment, what would you change about how you went about completing this assignment?
+If i restart this assignment i wiould implement the synchronization through message passing.
