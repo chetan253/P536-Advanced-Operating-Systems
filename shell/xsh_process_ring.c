@@ -6,6 +6,10 @@ volatile int value;
 volatile sid32 sema[64];
 volatile sid32 sync_completed;
 
+void print_help(){
+	printf("Type 'process_ring --help' for additional help.\n");
+}
+
 shellcmd xsh_process_ring(int nargs, char *args[]){
 	int proc_count = 2;
 	int round_count = 3;
@@ -17,64 +21,98 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
 	for(i = 0; i < nargs; i++){
 		if(strncmp(args[1], "--help", 7) == 0){
         	        printf("Usage: %s \n\t -p Number of Processes<0-64> Default 2\n", args[0]);
-               		printf("\t -r Number of Rounds, Default 3\n");
-	                printf("\t -i <poll or sync>\n");
+               		printf("\t -r Number of Rounds<0 - 100>, Default 3\n");
+	                printf("\t -i <poll OR sync>\n");
 			printf("\t Example: %s -p 1 -r 3 -i sync\n", args[0]);
 	                printf("Description: Counts down the number (processes * rounds - 1) to zero by passing to each process\n");
 	                return SHELL_OK;
 	        }
 		//Handling only digit args
 		if(nargs == 2 && i == 1){
-			proc_count = atoi(args[i]);
+			c = args[i];
+			while(*c != '\0'){
+                                if(isalpha(*c)){
+                                        printf("Integer Expected as first argument.\n");
+					print_help();
+                                        return SHELL_ERROR;
+                                }
+                                c++;
+                        }
+			round_count = atoi(args[i]);
 		}
 		if(nargs == 3 && i == 2){
-			round_count = atoi(args[i]);
+			c = args[i];
+			while(*c != '\0'){
+                                if(isalpha(*c)){
+                                        printf("Integer Expected as second argument.\n");
+					print_help();
+                                        return SHELL_ERROR;
+                                }
+                                c++;
+                        }
+			proc_count = atoi(args[i]);
 		}
 		if(strncmp(args[i], "-p", 3) == 0){
 			if(!(i+1 < nargs)){
 				printf("-p flag expected an numeric argument\n");
+				print_help();
 			        return SHELL_ERROR;
 			}
 			c = args[i+1];
 			proc_count = atoi(args[i+1]);
-			if(proc_count == 0 && c[0] != '0'){
-				printf("-p flag expected integer.\n");
-				return SHELL_ERROR;
+			while(*c != '\0'){
+				if(isalpha(*c)){
+					printf("-p flag expected integer.\n");
+					print_help();
+					return SHELL_ERROR;
+				}
+				c++;
 			}
 			if(proc_count < 0){
 				printf("-p flag expected an positive integer\n");
+				print_help();
 				return SHELL_ERROR;
 			}
 			else if(!(0 <= proc_count && proc_count <= 64)){
                                 printf("-p flag expected a number between 0 - 64\n");
-                                return SHELL_ERROR;
+                                print_help();
+				return SHELL_ERROR;
 			}
 			i += 1;
 		}
 		else if(strncmp(args[i], "-r", 3) == 0){
 			if(!(i+1 < nargs)){ 
                                 printf("-r flag expected an argument\n");
-                                return SHELL_ERROR;
+                                print_help();
+				return SHELL_ERROR;
                        	}
 			c = args[i+1];
                         round_count = atoi(args[i+1]);
-			if(round_count == 0 && c[0] != '0'){
-				printf("-r flag expected an integer\n");
-				return SHELL_ERROR;
+			
+			while(*c != '\0'){
+				if(isalpha(*c)){
+					printf("-r flag expected an integer.");
+					print_help();
+					return SHELL_ERROR;
+				}
+				c++;
 			}
 			if(round_count < 0){ 
                                 printf("-r flag expected an positive integer\n");
-                                return SHELL_ERROR;
+                                print_help();
+				return SHELL_ERROR;
                        	}
                         else if(!(0 <= round_count && round_count <= 100)){ 
                                 printf("-r flag expected a number between 0 - 100\n");
-                                return SHELL_ERROR;
+                                print_help();
+				return SHELL_ERROR;
                        	}
                         i += 1;
 		}
 		else if(strncmp(args[i], "-i", 3) == 0){
 			if(!(i+1 < nargs)){
                                	printf("-i flag expected an argument\n");
+				print_help();
                                 return SHELL_ERROR;
                         }
 			if(isdigit(atoi(args[i+1])) == 0){
@@ -87,9 +125,15 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
 					i += 1;
 				}
 				else{
-					printf("Arguments <poll OR sync> expected. Found a digit\n");
-                                	return SHELL_ERROR;
+					printf("Arguments <poll OR sync> expected.\n");
+                                	print_help();
+					return SHELL_ERROR;
 				}
+			}
+			else{
+				printf("Arguments <poll OR sync> expected.Found a digit\n");
+				print_help();
+				return SHELL_ERROR;
 			}
 		}
 	}
