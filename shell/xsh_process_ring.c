@@ -1,3 +1,4 @@
+/*Reference : https://cboard.cprogramming.com/cplusplus-programming/33859-how-can-i-determine-whether-string-represents-integer-not.html*/
 #include <process_ring.h>
 #include <ctype.h>
 volatile int inbox[64];

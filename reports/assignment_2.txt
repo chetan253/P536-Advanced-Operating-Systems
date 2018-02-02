@@ -8,4 +8,4 @@ I didn't allowed the the parent process to wait until the child process complete
 I ran the program for synchronization without the semaphore which allows the whole process to get executed and hence the program went in state of deadlock
 
 3.If you were restarting this assignment, what would you change about how you went about completing this assignment?
-If i restart this assignment i wiould implement the synchronization through message passing.
+If i restart this assignment i would implement the synchronization through message passing.
