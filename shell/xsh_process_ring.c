@@ -1,5 +1,5 @@
 #include <process_ring.h>
-
+#include <ctype.h>
 volatile int inbox[64];
 volatile int value;
 volatile sid32 sema[64];
@@ -10,16 +10,8 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
 	int round_count = 3;
 	int flag = 0;	//default polling
 	int i = 0;
+	char *c;
 	uint32 start, end, time;
-//	char *endp;
-//	int a = 0;
-//	a = strtol(args[2], &endp, 10);
-//	printf("a is %d", a);
-	if(nargs < 2){
-                fprintf(stderr, "%s: Invalid Arguments\n", args[0]);
-                fprintf(stderr, "Try '%s --help' for more information\n",args[0]);
-		return SHELL_ERROR;
-        }
 
 	for(i = 0; i < nargs; i++){
 		if(strncmp(args[1], "--help", 7) == 0){
@@ -28,15 +20,26 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
 	                printf("\t -i <poll or sync>\n");
 			printf("\t Example: %s -p 1 -r 3 -i sync\n", args[0]);
 	                printf("Description: Counts down the number (processes * rounds - 1) to zero by passing to each process\n");
-	                return 1;
+	                return SHELL_OK;
 	        }
-
+		//Handling only digit args
+		if(nargs == 2 && i == 1){
+			proc_count = atoi(args[i]);
+		}
+		if(nargs == 3 && i == 2){
+			round_count = atoi(args[i]);
+		}
 		if(strncmp(args[i], "-p", 3) == 0){
 			if(!(i+1 < nargs)){
-				printf("-p flag expected an argument\n");
+				printf("-p flag expected an numeric argument\n");
 			        return SHELL_ERROR;
 			}
+			c = args[i+1];
 			proc_count = atoi(args[i+1]);
+			if(proc_count == 0 && c[0] != '0'){
+				printf("-p flag expected integer.\n");
+				return SHELL_ERROR;
+			}
 			if(proc_count < 0){
 				printf("-p flag expected an positive integer\n");
 				return SHELL_ERROR;
@@ -52,8 +55,13 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
                                 printf("-r flag expected an argument\n");
                                 return SHELL_ERROR;
                        	}
+			c = args[i+1];
                         round_count = atoi(args[i+1]);
-                        if(round_count < 0){ 
+			if(round_count == 0 && c[0] != '0'){
+				printf("-r flag expected an integer\n");
+				return SHELL_ERROR;
+			}
+			if(round_count < 0){ 
                                 printf("-r flag expected an positive integer\n");
                                 return SHELL_ERROR;
                        	}
@@ -65,25 +73,25 @@ shellcmd xsh_process_ring(int nargs, char *args[]){
 		}
 		else if(strncmp(args[i], "-i", 3) == 0){
 			if(!(i+1 < nargs)){
-                               	printf("-r flag expected an argument\n");
+                               	printf("-i flag expected an argument\n");
                                 return SHELL_ERROR;
                         }
-			if(strncmp(args[i+1], "sync", 5) == 0){
-				flag = 1;
-				i += 1; 
+			if(isdigit(atoi(args[i+1])) == 0){
+				if(strncmp(args[i+1], "sync", 5) == 0){
+					flag = 1;
+					i += 1; 
+				}
+				else if(strncmp(args[i+1], "poll", 5) == 0){
+					flag = 0;
+					i += 1;
+				}
+				else{
+					printf("Arguments <poll OR sync> expected. Found a digit\n");
+                                	return SHELL_ERROR;
+				}
 			}
-			else if(strncmp(args[i+1], "poll", 5) == 0){
-				flag = 0;
-				i += 1;
-			}
-			else{
-				printf("-i flag expected an argument <poll or sync>\n");
-                                return SHELL_ERROR;
-			}
-			
 		}
 	}
-	
 	gettime(&start);	
 	inbox[0] = (proc_count * round_count) - 1;	 
 	value = inbox[0];
