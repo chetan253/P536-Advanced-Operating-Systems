@@ -21,16 +21,17 @@ status	insert(
 
 	curr = firstid(q);
 	while (queuetab[curr].qkey >= key) {
-		curr = queuetab[curr].qnext;
+		curr = queuetab[curr].qnext->pid;
 	}
 
 	/* Insert process between curr node and previous node */
 
-	prev = queuetab[curr].qprev;	/* Get index of previous node	*/
-	queuetab[pid].qnext = curr;
-	queuetab[pid].qprev = prev;
-	queuetab[pid].qkey = key;
-	queuetab[prev].qnext = pid;
-	queuetab[curr].qprev = pid;
+	prev = queuetab[curr].qprev->pid;    /* Get index of previous node   */
+    	queuetab[pid].pid = pid;
+    	queuetab[pid].qnext = &queuetab[curr];
+    	queuetab[pid].qprev = &queuetab[prev];
+    	queuetab[pid].qkey = key;
+    	queuetab[prev].qnext = &queuetab[pid];
+    	queuetab[curr].qprev = &queuetab[pid];
 	return OK;
 }

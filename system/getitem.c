@@ -18,7 +18,7 @@ pid32	getfirst(
 	}
 
 	head = queuehead(q);
-	return getitem(queuetab[head].qnext);
+	return getitem(queuetab[head].qnext->pid);
 }
 
 /*------------------------------------------------------------------------
@@ -31,13 +31,13 @@ pid32	getlast(
 					/*   valid with no check)	*/
 {
 	pid32 tail;
-
+	
 	if (isempty(q)) {
 		return EMPTY;
 	}
 
 	tail = queuetail(q);
-	return getitem(queuetab[tail].qprev);
+	return getitem(queuetab[tail].qprev->pid);
 }
 
 /*------------------------------------------------------------------------
@@ -50,9 +50,9 @@ pid32	getitem(
 {
 	pid32	prev, next;
 
-	next = queuetab[pid].qnext;	/* Following node in list	*/
-	prev = queuetab[pid].qprev;	/* Previous node in list	*/
-	queuetab[prev].qnext = next;
-	queuetab[next].qprev = prev;
-	return pid;
+	next = queuetab[pid].qnext->pid;     /* Following node in list	*/
+    	prev = queuetab[pid].qprev->pid;     /* Previous node in list   */
+    	queuetab[prev].qnext = queuetab[pid].qnext;
+    	queuetab[next].qprev = queuetab[pid].qprev;
+    	return pid;
 }
