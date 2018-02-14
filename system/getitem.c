@@ -49,7 +49,7 @@ pid32	getitem(
 	)
 {
 	pid32	prev, next;
-
+	//check the process state from the process table and kthen get the queue id and remove process from the particular queue
 	next = queuetab[pid].qnext->pid;     /* Following node in list	*/
     	prev = queuetab[pid].qprev->pid;     /* Previous node in list   */
     	queuetab[prev].qnext = queuetab[pid].qnext;
