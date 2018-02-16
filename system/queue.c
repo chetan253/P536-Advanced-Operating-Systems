@@ -18,7 +18,20 @@ pid32	enqueue(
 	if (isbadqid(q) || isbadpid(pid)) {
 		return SYSERR;
 	}
+	tail = &queuetab[queuetail(q)];
 
+    	prev = tail->qprev;
+
+    	newnode = (struct qentry*)malloc(sizeof(struct qentry));
+
+    	newnode->pid = pid;
+    	newnode->qnext = tail;
+    	newnode->qprev = prev;
+
+    	tail->qnext->qnext
+    	prev->qnext = newnode;
+    	tail->qprev = newnode;
+	/*
 	tail = queuetail(q);
 	prev = queuetab[tail].qprev->pid;
 
@@ -26,7 +39,7 @@ pid32	enqueue(
     	queuetab[pid].qnext  = &queuetab[tail];
     	queuetab[pid].qprev  = &queuetab[prev];
     	queuetab[tail].qprev = &queuetab[pid];
-    	queuetab[prev].qnext = &queuetab[pid];
+    	queuetab[prev].qnext = &queuetab[pid];*/
 	return pid;
 }
 
@@ -46,8 +59,11 @@ pid32	dequeue(
 		return EMPTY;
 	}
 
+	int   pid;                   /* ID of process removed        */
 	pid = getfirst(q);
+
+	/*pid = getfirst(q);
 	queuetab[pid].qprev = NULL;
-	queuetab[pid].qnext = NULL;
+	queuetab[pid].qnext = NULL;*/
 	return pid;
 }

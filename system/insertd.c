@@ -12,31 +12,53 @@ status	insertd(			/* Assumes interrupts disabled	*/
 	  int32		key		/* Delay from "now" (in ms.)	*/
 	)
 {
-	int32	next;			/* Runs through the delta list	*/
-	int32	prev;			/* Follows next through the list*/
+	//int32	next;			/* Runs through the delta list	*/
+	//int32	prev;			/* Follows next through the list*/
+        struct qentry *next, *prev, *newnode;
 
 	if (isbadqid(q) || isbadpid(pid)) {
 		return SYSERR;
 	}
+	
+	struct qentry *next, *prev, *newnode;
 
-	prev = queuehead(q);
+    	prev = &queuetab[queuehead(q)];
+    	next = prev->qnext;
+    	while ((next->qkey != MINKEY) && (next->qkey <= key)) {
+        	key -= next->qkey;
+        	prev = next;
+        	next = next->qnext;
+    	}
+
+    	newnode = (struct qentry*)malloc(sizeof(struct qentry));
+    	newnode->qkey = key;
+    	newnode->pid = pid;
+    	newnode->qnext = next;
+    	newnode->qprev = prev;
+    	next->qprev = newnode;
+    	prev->qnext = newnode;
+    	if (next->qkey != MINKEY) {
+     		next->qkey -= key;
+   	 }
+	
+	/*prev = queuehead(q);
 	next = queuetab[queuehead(q)].qnext->pid;
 	while ((next != queuetail(q)) && (queuetab[next].qkey <= key)) {
 		key -= queuetab[next].qkey;
 		prev = next;
 		next = queuetab[next].qnext->pid;
-	}
+	}*/
 
 	/* Insert new node between prev and next nodes */
 
-	queuetab[pid].qnext = &queuetab[next];
+	/*queuetab[pid].qnext = &queuetab[next];
 	queuetab[pid].qprev = &queuetab[prev];
 	queuetab[pid].qkey = key;
 	queuetab[prev].qnext = &queuetab[pid];
 	queuetab[next].qprev = &queuetab[pid];
 	if (next != queuetail(q)) {
 		queuetab[next].qkey -= key;
-	}
+	}*/
 
 	return OK;
 }

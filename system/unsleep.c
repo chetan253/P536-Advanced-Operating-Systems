@@ -12,10 +12,11 @@ status	unsleep(
 	  pid32		pid		/* ID of process to remove	*/
         )
 {
+	struct qentry *node;
 	intmask	mask;			/* Saved interrupt mask		*/
         struct	procent	*prptr;		/* Ptr to process' table entry	*/
-
-        pid32	pidnext;		/* ID of process on sleep queue	*/
+	qid16 	q;
+        struct qentry	*pidnext;		/* ID of process on sleep queue	*/
 					/*   that follows the process	*/
 					/*   which is being removed	*/
 
@@ -33,12 +34,24 @@ status	unsleep(
 		restore(mask);
 		return SYSERR;
 	}
+	
+	if(prptr->prstate == PR_READY){
+		q = readyList;
+	}
+	if(prptr->prstate ==  PR_SLEEP){
+		q = sleepq;
+	}
 
 	/* Increment delay of next process if such a process exists */
-
-	pidnext = queuetab[pid].qnext->pid;
-	if (pidnext < NPROC) {
-		queuetab[pidnext].qkey += queuetab[pid].qkey;
+	node = &queuetab[queuehead(q)]
+	while(node->pid != pid){
+		node = node.qnext;
+	}
+	pidnext = node.qnext;
+	//pidnext = queuetab[pid].qnext->pid;
+	if (pidnext.pid < NPROC) {
+		pidnext->qkey += node->qkey;
+		//queuetab[pidnext].qkey += queuetab[pid].qkey;
 	}
 
 	getitem(pid);			/* Unlink process from queue */
