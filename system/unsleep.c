@@ -15,7 +15,7 @@ status	unsleep(
 	struct qentry *node;
 	intmask	mask;			/* Saved interrupt mask		*/
         struct	procent	*prptr;		/* Ptr to process' table entry	*/
-	qid16 	q;
+	qid16 	qid;
         struct qentry	*pidnext;		/* ID of process on sleep queue	*/
 					/*   that follows the process	*/
 					/*   which is being removed	*/
@@ -35,21 +35,20 @@ status	unsleep(
 		return SYSERR;
 	}
 	
-	if(prptr->prstate == PR_READY){
-		q = readyList;
-	}
-	if(prptr->prstate ==  PR_SLEEP){
-		q = sleepq;
-	}
-
+	if(proctab[pid].prstate == PR_READY){
+        	qid = readylist;
+    	}
+    	else{
+        	qid = sleepq;
+    	}
 	/* Increment delay of next process if such a process exists */
-	node = &queuetab[queuehead(q)]
+	node = &queuetab[queuehead(qid)];
 	while(node->pid != pid){
-		node = node.qnext;
+		node = node->qnext;
 	}
-	pidnext = node.qnext;
+	pidnext = node->qnext;
 	//pidnext = queuetab[pid].qnext->pid;
-	if (pidnext.pid < NPROC) {
+	if (pidnext->pid < NPROC) {
 		pidnext->qkey += node->qkey;
 		//queuetab[pidnext].qkey += queuetab[pid].qkey;
 	}

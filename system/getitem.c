@@ -11,14 +11,14 @@ pid32	getfirst(
 	)				/* Remove a process (assumed	*/
 					/*   valid with no check)	*/
 {
-	pid32	head;
+	//pid32	head;
 
 	if (isempty(q)) {
 		return EMPTY;
 	}
 
-	head = queuehead(q);
-	return getitem(queuetab[head].qnext->pid);
+	//head = queuehead(q);
+	return getitem(firstid(q));
 }
 
 /*------------------------------------------------------------------------
@@ -30,14 +30,14 @@ pid32	getlast(
 	)				/* Remove a process (assumed	*/
 					/*   valid with no check)	*/
 {
-	pid32 tail;
+	//pid32 tail;
 	
 	if (isempty(q)) {
 		return EMPTY;
 	}
 
-	tail = queuetail(q);
-	return getitem(queuetab[tail].qprev->pid);
+	//tail = queuetail(q);
+	return getitem(lastid(q));
 }
 
 /*------------------------------------------------------------------------
@@ -48,11 +48,29 @@ pid32	getitem(
 	  pid32		pid		/* ID of process to remove	*/
 	)
 {
-	pid32	prev, next;
-	//check the process state from the process table and kthen get the queue id and remove process from the particular queue
-	next = queuetab[pid].qnext->pid;     /* Following node in list	*/
-    	prev = queuetab[pid].qprev->pid;     /* Previous node in list   */
-    	queuetab[prev].qnext = queuetab[pid].qnext;
-    	queuetab[next].qprev = queuetab[pid].qprev;
+	//pid32	prev, next;
+
+	qid16 qid = 0;
+    	struct qentry *prevnode, *currnode, *removenode;
+	removenode = NULL;
+    	if(proctab[pid].prstate == PR_READY){
+        	qid = readylist;
+    	}
+    	else{
+        	qid = sleepq;
+    	}
+    	currnode = &queuetab[queuehead(qid)];
+	prevnode = currnode;	
+    	while(currnode->qnext != NULL){
+        	if(currnode->pid == pid){
+            		removenode = currnode; // to free the space of this node
+            		prevnode->qnext = currnode->qnext;
+	            	currnode->qnext->qprev = prevnode;
+            		break;
+        	}
+		prevnode = currnode;
+        	currnode =  currnode->qnext;
+	}
+	freemem((char *)removenode, sizeof(struct qentry));
     	return pid;
 }

@@ -13,7 +13,7 @@ pid32	enqueue(
 	  qid16		q		/* ID of queue to use		*/
 	)
 {
-	qid16	tail, prev;		/* Tail & previous node indexes	*/
+	struct qentry	*tail, *prev, *newnode;		/* Tail & previous node indexes	*/
 
 	if (isbadqid(q) || isbadpid(pid)) {
 		return SYSERR;
@@ -22,13 +22,12 @@ pid32	enqueue(
 
     	prev = tail->qprev;
 
-    	newnode = (struct qentry*)malloc(sizeof(struct qentry));
+    	newnode = (struct qentry *)getmem(sizeof(struct qentry));
 
     	newnode->pid = pid;
     	newnode->qnext = tail;
     	newnode->qprev = prev;
 
-    	tail->qnext->qnext
     	prev->qnext = newnode;
     	tail->qprev = newnode;
 	/*
@@ -59,7 +58,7 @@ pid32	dequeue(
 		return EMPTY;
 	}
 
-	int   pid;                   /* ID of process removed        */
+	//int   pid;                   /* ID of process removed        */
 	pid = getfirst(q);
 
 	/*pid = getfirst(q);
