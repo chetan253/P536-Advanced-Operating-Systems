@@ -8,7 +8,7 @@ struct	defer	Defer;
  *  resched  -  Reschedule processor to highest priority eligible process
  *------------------------------------------------------------------------
  */
-void	resched2(uint16 next_state, pid16 currex_pid)		/* Assumes interrupts are disabled	*/
+void	resched2(uint16 next_state, pid32 currex_pid)		/* Assumes interrupts are disabled	*/
 {
 	struct procent *ptold;	/* Ptr to table entry for old process	*/
 	struct procent *ptnew;	/* Ptr to table entry for new process	*/
@@ -33,7 +33,7 @@ void	resched2(uint16 next_state, pid16 currex_pid)		/* Assumes interrupts are di
                 }
 
                 ptnext->prstate = PR_READY;
-                insert(curexrpid, readylist, ptnext->prprio);
+                insert(currex_pid, readylist, ptnext->prprio);
         }
 	
 	ptnext->prstate = next_state;	//assigning next state
@@ -76,7 +76,7 @@ void	resched2(uint16 next_state, pid16 currex_pid)		/* Assumes interrupts are di
  *  resched_cntl  -  Control whether rescheduling is deferred or allowed
  *------------------------------------------------------------------------
  */
-status	resched_cntl(		/* Assumes interrupts are disabled	*/
+status	resched_cntl2(		/* Assumes interrupts are disabled	*/
 	  int32	defer		/* Either DEFER_START or DEFER_STOP	*/
 	)
 {
@@ -94,7 +94,7 @@ status	resched_cntl(		/* Assumes interrupts are disabled	*/
 			return SYSERR;
 		}
 		if ( (--Defer.ndefers == 0) && Defer.attempt ) {
-			resched2();
+			resched();
 		}
 		return OK;
 
