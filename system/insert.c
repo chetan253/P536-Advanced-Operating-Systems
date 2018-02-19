@@ -24,6 +24,7 @@ status	insert(
     	while (curr->qkey >= key) {
        		curr = curr->qnext;
     	}
+	//Non-FIFO implementation
     	prev = curr->qprev;
     	newnode = (struct qentry *)getmem(sizeof(struct qentry));
     	newnode->pid = pid;

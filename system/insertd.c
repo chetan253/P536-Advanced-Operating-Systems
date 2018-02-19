@@ -14,7 +14,7 @@ status	insertd(			/* Assumes interrupts disabled	*/
 {
 	//int32	next;			/* Runs through the delta list	*/
 	//int32	prev;			/* Follows next through the list*/
-        struct qentry *next, *prev, *newnode, *tail;
+        struct qentry *next, *prev, *newnode, *tail; /*structs to manipulate the queue*/
 
 	if (isbadqid(q) || isbadpid(pid)) {
 		return SYSERR;
@@ -28,7 +28,7 @@ status	insertd(			/* Assumes interrupts disabled	*/
         	prev = next;
         	next = next->qnext;
     	}
-
+	//inserting the process node
     	newnode = (struct qentry *)getmem(sizeof(struct qentry));
     	newnode->qkey = key;
     	newnode->pid = pid;

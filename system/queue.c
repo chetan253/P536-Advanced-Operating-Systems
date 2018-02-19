@@ -19,7 +19,7 @@ pid32	enqueue(
 		return SYSERR;
 	}
 	tail = &queuetab[queuetail(q)];
-
+	//enqueue new process using pointers
     	prev = tail->qprev;
 
     	newnode = (struct qentry *)getmem(sizeof(struct qentry));
@@ -30,15 +30,6 @@ pid32	enqueue(
 
     	prev->qnext = newnode;
     	tail->qprev = newnode;
-	/*
-	tail = queuetail(q);
-	prev = queuetab[tail].qprev->pid;
-
-	queuetab[pid].pid    = pid;
-    	queuetab[pid].qnext  = &queuetab[tail];
-    	queuetab[pid].qprev  = &queuetab[prev];
-    	queuetab[tail].qprev = &queuetab[pid];
-    	queuetab[prev].qnext = &queuetab[pid];*/
 	return pid;
 }
 
@@ -58,11 +49,6 @@ pid32	dequeue(
 		return EMPTY;
 	}
 
-	//int   pid;                   /* ID of process removed        */
 	pid = getfirst(q);
-
-	/*pid = getfirst(q);
-	queuetab[pid].qprev = NULL;
-	queuetab[pid].qnext = NULL;*/
 	return pid;
 }

@@ -50,7 +50,6 @@ status	unsleep(
 	//pidnext = queuetab[pid].qnext->pid;
 	if (pidnext->pid < NPROC) {
 		pidnext->qkey += node->qkey;
-		//queuetab[pidnext].qkey += queuetab[pid].qkey;
 	}
 
 	getitem(pid);			/* Unlink process from queue */
