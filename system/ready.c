@@ -23,7 +23,8 @@ status	ready(
 	prptr = &proctab[pid];
 	prptr->prstate = PR_READY;
 	insert(pid, readylist, prptr->prprio);
-	resched();
+	//resched();
+	resched2(PR_READY);
 
 	return OK;
 }

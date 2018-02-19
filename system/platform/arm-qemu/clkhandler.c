@@ -33,7 +33,7 @@ interrupt clkhandler(void)
     }
     else
     {
-        resched();
+       resched();
     }
 }
 

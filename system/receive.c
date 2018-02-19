@@ -16,7 +16,8 @@ umsg32	receive(void)
 	prptr = &proctab[currpid];
 	if (prptr->prhasmsg == FALSE) {
 		prptr->prstate = PR_RECV;
-		resched();		/* Block until message arrives	*/
+		//resched();
+		resched2(PR_RECV);		/* Block until message arrives	*/
 	}
 	msg = prptr->prmsg;		/* Retrieve message		*/
 	prptr->prhasmsg = FALSE;	/* Reset message flag		*/
