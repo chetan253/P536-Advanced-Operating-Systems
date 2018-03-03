@@ -1,9 +1,9 @@
 // Future free
 #include<xinu.h>
-#include<future.f>
+#include<future.h>
 
 syscall future_free(future* f){
-	//release the memory
-	freemem(f, sizeof(f));
+	//release the memory of allocated future
+	freemem((char* )f, sizeof(f));
 	return OK;
 }
