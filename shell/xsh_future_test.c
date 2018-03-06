@@ -19,11 +19,11 @@ uint32 future_test(int nargs, char *args[])
   return OK;
 #endif
 
-  if (nargs == 2 && strncmp(args[1], "-r", 2) == 0) {
+  if (nargs == 3 && strncmp(args[1], "future_test",11 )==0 && strncmp(args[2], "-r", 2) == 0) {
     ring = 1;
     printf("Producer/consumer process ring\n");
   }
-  else if(nargs == 1 && strncmp(args[0], "future_test",11)==0){
+  else if(nargs == 2 && strncmp(args[1], "future_test",11)==0){
     ring = 1;
     printf("producer/consumer process ring\n");
   }
