@@ -18,19 +18,19 @@ syscall future_set(future* f, int* value){
 	else if(f->flag == FUTURE_SHARED){
 		intmask mask = disable();
 		pid32 proc_id;
-		queue *q = f->get_queue;
+		//printf("value* %d\n",*value);
+		//printf("value %d\n", value);
 		if(f->state == FUTURE_EMPTY){
 			f->state = FUTURE_VALID;
-			f->value = *value;
-		}
-		else if(f->state == FUTURE_VALID){
-			//Only one thread can call future set
-			restore(mask);
-			return SYSERR;
+			f->value = value;
 		}
 		else if(f->state == FUTURE_WAITING){
-			while(q->qtail != NULL){
-                                proc_id = fut_dequeue(q);
+			f->state = FUTURE_VALID;
+                        f->value = value;
+			//printf("f->value* %d\n", *f->value);
+			//remove all the processes
+			while(f->get_queue->qhead->next != NULL){
+                                proc_id = fut_dequeue(f->get_queue);
                                 resume(proc_id);
                         }
 
@@ -39,7 +39,28 @@ syscall future_set(future* f, int* value){
 		return OK;
 	}
 	else if(f->flag == FUTURE_QUEUE){
-		
+		intmask mask = disable();
+                pid32 proc_id;
+		if(f->state == FUTURE_EMPTY){
+                        f->state = FUTURE_VALID;
+                        f->value = value;
+			fut_enqueue(f->set_queue, currpid);
+			suspend(currpid);
+                }
+                else if(f->state == FUTURE_WAITING){
+      			proc_id = fut_dequeue(f->get_queue);
+                        f->value = value;
+			if(f->get_queue->qhead->next == NULL && f->set_queue->qhead->next == NULL){
+                                f->state = FUTURE_EMPTY;
+                        }
+                        resume(proc_id);
+		}
+		else if(f->state == FUTURE_VALID){
+			fut_enqueue(f->set_queue, currpid);
+                        suspend(currpid);
+			f->value = value;
+		}
+		restore(mask);
 	}
 	return OK;
 }

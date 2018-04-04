@@ -1,11 +1,15 @@
 #include<xinu.h>
 #include<future.h>
 #include<stdio.h>
+#include <ctype.h>
+
 uint32 future_proc_ring(int);
 uint32 future_ring(future*, future*);
 uint future_prod(future* ,int);
 uint future_cons(future*);
 uint32 future_prod_cons();
+int ffib(int);
+future **fibfut;
 /**
  *  * Test Futures
  *   */
@@ -25,6 +29,22 @@ uint32 future_test(int nargs, char *args[])
 	else if(strncmp(args[2], "-pc", 3) == 0){
 		return future_prod_cons();
 	}
+  }
+  else if(nargs == 4 && strncmp(args[1], "future_test",11 )==0 && strncmp(args[2], "-f", 2) == 0){
+		int n;
+		n = atoi(args[3]);
+  		printf("Futures fibonacci for N=%d\n",n);
+		int i, final;
+		fibfut = (future **)getmem((n+1) * sizeof(future*));
+		for(i = 0; i < n+1; i++){
+		    fibfut[i]= future_alloc(FUTURE_SHARED);
+		}
+		for(i = n;i >= 0; i--){
+		    resume(create(ffib,1024,20,"",1,i));
+		}
+		future_get(fibfut[n],&final);
+		printf("Nth fibonacci value is %d\n", final);
+		return OK;
   }
   else if(nargs == 2 && strncmp(args[1], "future_test",11)==0){
     return future_proc_ring(1);
@@ -79,14 +99,24 @@ uint32 future_prod_cons(){
 	resume( create(future_prod, 1024, 20, "fprod1", 2, f_exclusive, 1));
 	sleepms(10);	
 	printf("SHARED\n");
-	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
+  	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
+	resume( create(future_cons, 1024, 20, "fcons3", 1, f_shared) );
+	resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared) ); 
+	resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared) );
 	resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 2) );
-  	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
-  	//resume( create(future_cons, 1024, 20, "fcons3", 1, f_shared) );
-  	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
-	resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 3) );  	
-  	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) ); 
-  	//resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared) );
+	future_free(f_shared);
+	sleepms(10);
+	printf("QUEUE\n");
+	resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue) );
+	resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue) );
+	resume( create(future_cons, 1024, 20, "fcons8", 1, f_queue) );
+	resume( create(future_cons, 1024, 20, "fcons9", 1, f_queue) );
+	resume( create(future_prod, 1024, 20, "fprod3", 2, f_queue, 3) );
+	resume( create(future_prod, 1024, 20, "fprod4", 2, f_queue, 4) );
+	resume( create(future_prod, 1024, 20, "fprod5", 2, f_queue, 5) );
+	resume( create(future_prod, 1024, 20, "fprod6", 2, f_queue, 6) );
+	future_free(f_queue);
+	sleepms(10);
 	return(OK);
 }
 
@@ -106,6 +136,35 @@ uint future_cons(future* fut) {
   printf("Consumed %d\n", i);
   return OK;
 }
+
+int ffib(int n) {
+
+  int minus1 = 0;
+  int minus2 = 0;
+  int this = 0;
+  int zero =0, one=1;
+
+  if (n == 0) {
+    future_set(fibfut[0], &zero);
+    return OK;
+  }
+
+  if (n == 1) {
+    future_set(fibfut[1], &one);
+    return OK;
+  }
+  
+  future_get(fibfut[n-2], &minus2);
+  future_get(fibfut[n-1], &minus1);
+
+  this = minus1 + minus2;
+
+  future_set(fibfut[n], &this);
+
+  return(0);
+
+}
+
 
 shellcmd xsh_future_test(int nargs, char *args[]){
 	future_test(nargs, args);

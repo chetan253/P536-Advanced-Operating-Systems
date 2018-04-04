@@ -11,23 +11,22 @@
 #define FUTURE_SHARED     2	    
 #define FUTURE_QUEUE      3     
 
-typedef struct{
+typedef struct qnode{
 	pid32 proc_id;
 	struct qnode *next;
 }qnode;
 
-typedef struct{
-	qnode *qhead;
-	qnode *qtail;
+typedef struct queue{
+	struct qnode *qhead;
 }queue;
 
-typedef struct{
+typedef struct futent{
    int *value;		
    int flag;	
    int state; 	
    pid32 pid;
-   queue *set_queue;     
-   queue *get_queue;
+   struct queue *set_queue;     
+   struct queue *get_queue;
 }future;
 
 /*Future queue funtions*/
