@@ -11,16 +11,28 @@
 #define FUTURE_SHARED     2	    
 #define FUTURE_QUEUE      3     
 
-typedef struct futent
-{
-   int *value;		
-   int flag;		
-   int state;         	
-   pid32 pid;
-   queue set_queue;     
-   queue get_queue;
+typedef struct{
+	pid32 proc_id;
+	struct qnode *next;
+}qnode;
 
+typedef struct{
+	qnode *qhead;
+	qnode *qtail;
+}queue;
+
+typedef struct{
+   int *value;		
+   int flag;	
+   int state; 	
+   pid32 pid;
+   queue *set_queue;     
+   queue *get_queue;
 }future;
+
+/*Future queue funtions*/
+void fut_enqueue(queue *, pid32);
+pid32 fut_dequeue(queue *);
 
 /* Interface for system call */
 future* future_alloc(int future_flags);
