@@ -1,0 +1,27 @@
+Assignment 5 report
+
+**In this assignment I've implemented the futures based on FUTURE_SHARED and FUTURE_QUEUE modes, while the implementation of FUTURE_EXCLUSIVE mode is same as that in Assignment 4
+
+
+Functionality Design:
+**The major implementation and/or modifications were made while designing the queues and handling the states of futures in order to hold the processes depending on state to state and the relationship among the modes i.e one to many in case of FUTURE_SHARED and many to many in case of FUTURE_QUEUE. 
+
+**The allocation of futures and subsequent queues is implemented in future_alloc
+
+**The queue and the respective operations implemented in this case was using the FIFO functionality such as that in assignment 3.
+
+
+
+Modes:
+**FUTURE_SHARED: 
+This mode exhibits the behaviour of one to many relationship between the processes, where only one process can make call to future_set in order to set a value while others will be neglected. In case if there are threads that are called prior to future set will be simply waitingand be enqued in the get_queue of an allocated future. Once the value is set all the threads in the waiting mode will get be valid at once and get the value produced same for each enqueued.
+
+**FUTURE_QUEUE:
+This mode exhibits the behaviour of many to many relationship between the processes.
+(Explained base on producer consumer problem)
+
+Case 1: 
+In this case if the producer makes an call to set the value, and if there are any existing processes waiting in the get_queue of future, then the value is produced by the future and only a single process will be dequeued from the get que which will consume the produced value based on FIFO condition.In case, if there is no one waiting in get_queue to consume the value of the process the process gets enqueue in set_queue
+
+Case 2: 
+This case is somewhat contradiction to that of case 1. In this case if a consumer calls future_get and producers itself are waiing in the set_queue to produce the value then consumer will dequeue a single process from the set_queue which will produce the value and thereby consumed by the consumer process. In case if there are no producers being present the consumer process will enqueue itself in the get_queue.
