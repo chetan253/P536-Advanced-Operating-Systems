@@ -9,7 +9,7 @@ uint future_prod(future* ,int);
 uint future_cons(future*);
 uint32 future_prod_cons();
 int ffib(int);
-future **fibfut;
+future* fibfut[];
 /**
  *  * Test Futures
  *   */
@@ -35,7 +35,8 @@ uint32 future_test(int nargs, char *args[])
 		n = atoi(args[3]);
   		printf("Futures fibonacci for N=%d\n",n);
 		int i, final;
-		fibfut = (future **)getmem((n+1) * sizeof(future*));
+		//fibfut = (future **)getmem((n+1) * sizeof(future*));
+		fibfut[n];		
 		for(i = 0; i < n+1; i++){
 		    fibfut[i]= future_alloc(FUTURE_SHARED);
 		}
@@ -99,12 +100,13 @@ uint32 future_prod_cons(){
 	resume( create(future_prod, 1024, 20, "fprod1", 2, f_exclusive, 1));
 	sleepms(10);	
 	printf("SHARED\n");
+	//resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 2) );
   	resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
 	resume( create(future_cons, 1024, 20, "fcons3", 1, f_shared) );
-	resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared) ); 
+	resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared));
 	resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared) );
 	resume( create(future_prod, 1024, 20, "fprod2", 2, f_shared, 2) );
-	future_free(f_shared);
+	//future_free(f_shared);
 	sleepms(10);
 	printf("QUEUE\n");
 	resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue) );
@@ -115,7 +117,15 @@ uint32 future_prod_cons(){
 	resume( create(future_prod, 1024, 20, "fprod4", 2, f_queue, 4) );
 	resume( create(future_prod, 1024, 20, "fprod5", 2, f_queue, 5) );
 	resume( create(future_prod, 1024, 20, "fprod6", 2, f_queue, 6) );
-	future_free(f_queue);
+	
+	
+	while(f_queue->value <= 6){
+	sleep(0.3);
+	}
+	
+	//future_free(f_exclusive);
+	//future_free(f_shared);
+	//future_free(f_queue);
 	sleepms(10);
 	return(OK);
 }
@@ -128,6 +138,7 @@ uint future_prod(future* fut,int n) {
 
 uint future_cons(future* fut) {
   int i, status;
+	 printf("cons called by %d\n",getpid());
   status = (int)future_get(fut, &i);
   if (status < 1) {
     printf("future_get failed\n");

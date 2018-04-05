@@ -7,8 +7,8 @@ syscall future_get(future* f, int* value){
 		//if empty current pid will be suspended
 		if(f->state == FUTURE_EMPTY){
 			f->state = FUTURE_WAITING;
-			f->pid = currpid;
-			suspend(currpid);
+			f->pid = getpid();
+			suspend(getpid());
 			*value = *(f->value);
 			return OK;
 		}
@@ -24,16 +24,19 @@ syscall future_get(future* f, int* value){
 		}
 	}
 	else if(f->flag == FUTURE_SHARED){
-		intmask mask = disable();
+		//intmask mask = disable();
+		//printf("Get called by %d\n",getpid());
 		if(f->state == FUTURE_EMPTY){
 			f->state = FUTURE_WAITING;
-			fut_enqueue(f->get_queue, currpid);
-			suspend(currpid);
+			fut_enqueue(f->get_queue, getpid());
+			//printf("Get called and enquing %d\n",getpid());
+			suspend(getpid());
 			*value = *(f->value);
 		}
 		else if(f->state == FUTURE_WAITING){
-  			fut_enqueue(f->get_queue, currpid);
-			suspend(currpid);
+  			fut_enqueue(f->get_queue, getpid());
+			//printf("get called in waiting %d\n",getpid());
+			suspend(getpid());
 			*value = *(f->value);
 		}
 		else if(f->state == FUTURE_VALID){
@@ -41,20 +44,20 @@ syscall future_get(future* f, int* value){
 		}
 		//printf("fvalue* %d\n",*(f->value));
                 //printf("value %d\n", value);
-		restore(mask);
+		//restore(mask);
 	}
 	else if(f->flag == FUTURE_QUEUE){
                 intmask mask = disable();
 		pid32 proc_id;
                 if(f->state == FUTURE_EMPTY){
                         f->state = FUTURE_WAITING;
-			fut_enqueue(f->get_queue, currpid);
-                        suspend(currpid);
+			fut_enqueue(f->get_queue, getpid());
+                        suspend(getpid());
                         *value = *(f->value);
                 }
                 else if(f->state == FUTURE_WAITING){
-                        fut_enqueue(f->get_queue, currpid);
-                        suspend(currpid);
+                        fut_enqueue(f->get_queue, getpid());
+                        suspend(getpid());
                         *value = *(f->value);
                 }
                 else if(f->state == FUTURE_VALID){

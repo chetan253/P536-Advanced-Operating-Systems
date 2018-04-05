@@ -20,18 +20,19 @@ typedef struct queue{
 	struct qnode *qhead;
 }queue;
 
-typedef struct futent{
+typedef struct futent
+{
    int *value;		
    int flag;	
    int state; 	
    pid32 pid;
    struct queue *set_queue;     
    struct queue *get_queue;
+
 }future;
 
-/*Future queue funtions*/
-void fut_enqueue(queue *, pid32);
-pid32 fut_dequeue(queue *);
+void fut_enqueue(struct queue *, pid32);
+pid32 fut_dequeue(struct queue*);
 
 /* Interface for system call */
 future* future_alloc(int future_flags);

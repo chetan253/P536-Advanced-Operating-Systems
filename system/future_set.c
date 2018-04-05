@@ -18,7 +18,7 @@ syscall future_set(future* f, int* value){
 	else if(f->flag == FUTURE_SHARED){
 		intmask mask = disable();
 		pid32 proc_id;
-		//printf("value* %d\n",*value);
+		//printf("value* %d\n",value);
 		//printf("value %d\n", value);
 		if(f->state == FUTURE_EMPTY){
 			f->state = FUTURE_VALID;
@@ -27,11 +27,13 @@ syscall future_set(future* f, int* value){
 		else if(f->state == FUTURE_WAITING){
 			f->state = FUTURE_VALID;
                         f->value = value;
-			//printf("f->value* %d\n", *f->value);
+			//printf("f->value* %d\n", f->value);
 			//remove all the processes
 			while(f->get_queue->qhead->next != NULL){
-                                proc_id = fut_dequeue(f->get_queue);
-                                resume(proc_id);
+                                //printf("set while\n");
+				proc_id = fut_dequeue(f->get_queue);
+                                //printf("Resuming the procid %d\n",proc_id);
+				resume(proc_id);
                         }
 
 		}
