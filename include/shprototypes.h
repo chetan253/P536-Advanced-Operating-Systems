@@ -85,5 +85,8 @@ extern shellcmd xsh_process_ring (int32, char *[]);
 /* in file xsh_future_test*/
 extern shellcmd xsh_future_test  (int32, char *[]);
 
+/*in file xsh_fstest.c*/
+extern shellcmd xsh_fstest	(int32, char *[]);
+
 /*tester file*/
 extern shellcmd xsh_tester (int32, char *[]);
