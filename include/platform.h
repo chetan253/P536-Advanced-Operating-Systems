@@ -9,7 +9,7 @@
 #include <xinu.h>
 #include <stddef.h>
 #include <stdarg.h>
-
+#define FS 1
 /** Maximum length of platform name and family strings, including the
  * null-terminator.  */
 #define PLT_STRMAX 18
