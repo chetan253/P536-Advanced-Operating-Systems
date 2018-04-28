@@ -1,0 +1,43 @@
+File Systems Report :
+Implementation of functions:
+
+fs_open():
+1. fs_open takes input as 2 parameter, a filename and flags related to file. 
+2. This function operates for all three flags i.e read, write and read-write.
+3. In order to open a file we check the number of entries in the root directory which is parent of all files in the OS.
+4. If the entries are present then we iterate through all files one by one and check if the filename meet any of the file in the root directory. If the match is present for filename then we change the state of file and return the ith position which acts as file descriptor. If we scout all files and no match happens then file doesnt exists.
+
+fs_close():
+1. fs_close takes input as the file descriptor
+2. The implementation validates the passed param and if the state of the file is open then it closes the file.
+ 
+fs_create():
+1. fs_create takes input as filename and the mode related to creation of new file.
+2. This function is basically used to create a new file in the file system.
+3. We check if the file exists in the system or not and if not then we initialize new inode structure and fill it with the new file attributes.
+4. We assign the inode to the last memory slot available at the end of all the initialized files and tthen update the rootdirecory and the final number of entries present in the system after addition in filetable.
+
+fs_seek():
+1. fs_seek takes input as file descriptor and number of bytes written as an offset
+2. As we perform read operations on a file the file pointer is pointed towards very last after each block is written.
+3. If we perform the read action again we might end up with the error as there will be no further data to read as the pointer is at the last. Hence fs_seek() helps to point back again to the start of data in the file.
+
+fs_read():
+1. fs_read takes 3 parameter i.e file descriptor, empty buffer where content of file is copied and number of bytes.
+2. Here prior to reading we check if the file descriptor passed is valid as well as the file is open or not and then continue.
+3. Using the file descriptor we retrieve the particular file from the file table and check the flags that we had set while we created that file. If the flag is read and read-write we proceed with reading process else we terminate.
+4. Then retrieving the inode and its blocks we calculate the offset as well as number of bytes present the particular file.
+5. We then iterate through all the blocks in that paricular inode structure and copy the bytes depending on the data length with 512kb per block and if offset is present then remaining data is copied to buffer.
+
+fs_write():
+1. fs_write takes 3 parameter i.e file descriptor, buffer where content to be written is present and number of bytes.
+2. Here prior to writing we check if the file descriptor passed is valid as well as the file is open or not and then continue.
+3. Using the file descriptor we retrieve the particular file from the file table and check the flags that we had set while we created that file. If the flag is write and read-write we proceed with writing process else we terminate.
+4. This function first starts checking for the free blocks using bitmask. Once the free block is found the data from the buffer with particular data lenght is copied to the block of size 512kb. This length depends on bytes left to be copied. Hence, we update both data length as well as buffer once the data is copies to the block to the next start of data to be copied.
+5.Once all the bytes are written the function updates the fileptr and the size of the file in filetable and returns the number of bytes written.
+
+
+Q2. Lessons learned;
+1. Understood the internal functionality of how the data is written in the memory.
+2. Learnt the core file operations that we perform like create, open, reading, writing, closing etc from very basics.
+3. Understood how the filetable works and most importantly the inode structure that describe files as well as its attributes.
