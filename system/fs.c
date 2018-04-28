@@ -214,12 +214,11 @@ void fs_printfreemask(void) {
   printf("\n");
 }
 
-
 int fs_open(char *filename, int flags) {
 	//printf("In fs_open\n");
 	struct inode f_inode;
 	int i = 0;
-	printf("%d\n",fsd.root_dir.numentries);
+	//printf("%d\n",fsd.root_dir.numentries);
 	if(fsd.root_dir.numentries > 0){
 		for(i = 0; i < fsd.root_dir.numentries; i++){
 			if(strcmp(filename, fsd.root_dir.entry[i].name) == 0){
@@ -241,21 +240,25 @@ int fs_open(char *filename, int flags) {
 	return SYSERR;
 }
 
+int isValid(int fd){
+        return (fd < 0 || fd > NUM_FD) ? 0 : 1;
+}
+
 int fs_close(int fd) {
-	//printf("In fs_close\n");
+	if(!isValid(fd)){
+		printf("Not a valid file\n");
+                return SYSERR;
+	}
 	if(oft[fd].state == FSTATE_OPEN){
 		oft[fd].state = FSTATE_CLOSED;
 		oft[fd].fileptr = 0;
-		fs_put_inode_by_num(dev0, fd, &oft[fd].in);
-		printf("File closed\n");
+		//printf("File closed\n");
 		return OK;
 	}
-	printf("File was not open\n");
-	return SYSERR;
+	return OK;
 }
 
 int fs_create(char *filename, int mode) {
-	//printf("In fs_create\n");
 	//printf("create prev num entries %d\n",fsd.root_dir.numentries);
 	if(mode == O_CREAT){
 		int i = 0;
@@ -267,76 +270,78 @@ int fs_create(char *filename, int mode) {
 			}
 		}
 		struct inode new_inode;
-		new_inode_num = fsd.inodes_used;	
-		//fs_get_inode_by_num(dev0, new_inode_num, &(new_inode));
+		//new_inode_num = fsd.inodes_used;
+		fsd.inodes_used++;	
+		fs_get_inode_by_num(dev0, fsd.inodes_used, &(new_inode));
 		new_inode.id = fsd.inodes_used;
 		new_inode.device = dev0;
 		new_inode.type = INODE_TYPE_FILE;
-		//fs_put_inode_by_num(dev0, new_inode_num, &(new_inode));
+		new_inode.size = 0;
+		fs_put_inode_by_num(dev0, fsd.inodes_used, &(new_inode));
 
 		//Update fsd.root_dir directory
 		fsd.root_dir.entry[fsd.root_dir.numentries].inode_num = fsd.inodes_used;
 		strcpy(fsd.root_dir.entry[fsd.root_dir.numentries].name, filename);
-		fs_put_inode_by_num(dev0, new_inode_num, &(new_inode));		
 		fsd.root_dir.numentries++;
 		//printf("File created with name : %s\n",fsd.root_dir.entry[fsd.root_dir.numentries].name);
 		//printf("create after numentries %d\n",fsd.root_dir.numentries);
-		return fsd.inodes_used++;
+		return fs_open(filename, O_RDWR);
 	}
 	
 	printf("Wrong mode passed");
 	return SYSERR;
 }
 
-int isValid(int fd){
-	return (fd < 0 || fd > NUM_FD) ? 0 : 1;
-}
-
 int fs_seek(int fd, int offset){ 
-	//printf("In fs_seek\n");
-	if(isValid(fd)){
-		oft[fd].fileptr += offset;
-		return OK;
+	if(!isValid(fd)){
+		printf("Not a valid file\n");
+		return SYSERR;
 	}
-	printf("Not a valid file\n");
-	return SYSERR;
+	oft[fd].fileptr += offset;
+	return OK;
 }
 
 int fs_read(int fd, void *buf, int nbytes) {
-	int i = 0, j = 0;
-	//printf("In fs_read\n");
+	int i = 0;
 	if(!isValid(fd)){
 		printf("Not a valid file\n");
 		return SYSERR;
 	}
 	if(oft[fd].state !=  FSTATE_OPEN){
 		printf("Open the file first\n");
+		
 		return SYSERR;
 	}
 	if(oft[fd].flags == O_RDWR || oft[fd].flags == O_RDONLY){
-		int blk_limit = nbytes / MDEV_BLOCK_SIZE + 1;
+		int blk_limit = oft[fd].in.size;
+		int offset = 0;
 		int blk_size = 0;
-		for(i = 0; i < blk_limit; i++){
-			if(i + 1 == blk_limit)
-				blk_size = nbytes % MDEV_BLOCK_SIZE;
+		nbytes += oft[fd].fileptr;
+		int block = oft[fd].fileptr / MDEV_BLOCK_SIZE;
+		int bytes = 0;
+		for(i = block ; i < blk_limit; i++,bytes = strlen(buf)){
+			if(offset && i == 0)
+				blk_size = oft[fd].fileptr % MDEV_BLOCK_SIZE;
 			else
 				blk_size = MDEV_BLOCK_SIZE;
-			int blk_num = oft[fd].in.blocks[i];
-			if(bs_bread(dev0, blk_num, 0, buf + oft[fd].fileptr, blk_size) == OK){
-				oft[fd].fileptr += blk_size;
+			char temp_buf[MDEV_BLOCK_SIZE];
+			if(bs_bread(dev0, oft[fd].in.blocks[i], 0, temp_buf, blk_size - (oft[fd].fileptr % MDEV_BLOCK_SIZE)) == OK){
+				strcpy(buf + bytes, temp_buf);
+				//printf("Read active\n");
 				continue;
 			}
 			printf("Reading failed\n");
 			return SYSERR;
 		}
-		return oft[fd].fileptr;
+		return strlen(buf);
 	}
 	printf("File is not in read mode\n");
 	return SYSERR;
 }
 
 int fs_write(int fd, void *buf, int nbytes) {
-	//printf("In fs_write\n");
+	//printf("bytes to write total %d\n",nbytes);
+	//printf("Buffer len %d\n", strlen(buf));
 	if(!isValid(fd)){
 		printf("Not a valid file\n");
 		return SYSERR;
@@ -346,33 +351,50 @@ int fs_write(int fd, void *buf, int nbytes) {
 		return SYSERR;
 	}
 	if(oft[fd].flags == O_RDWR || oft[fd].flags == O_WRONLY){
-		int i = 15;
-		int blk_limit = strlen(buf) / MDEV_BLOCK_SIZE + 1;
+		int i = FIRST_INODE_BLOCK + NUM_INODE_BLOCKS;
+		int blk_limit = 0;
+		int offset = 0;
+		if(nbytes % MDEV_BLOCK_SIZE != 0){
+			offset = 1;
+			blk_limit = nbytes / MDEV_BLOCK_SIZE + 1;
+		}
+		else
+			blk_limit = nbytes / MDEV_BLOCK_SIZE;
+		
+		int data_length = nbytes;
 		int blk_size = 0, counter = 0, inode_count = 0;
-		int blk_start = 0;
-		//printf("before for loop"); 
-		for(i = 15; i < fsd.nblocks; i++,counter++){
-			if(oft[fd].fileptr == strlen(buf))
-				break;	
-			if(fs_getmaskbit(i) != 0)
+		while(i < MDEV_BLOCK_SIZE && inode_count < blk_limit){
+			if(fs_getmaskbit(i) != 0){
+				i++;
 				continue;
-			if(counter + 1 == blk_limit)
-                                blk_size = strlen(buf) % MDEV_BLOCK_SIZE;
+			}
+			if(offset && data_length  < MDEV_BLOCK_SIZE)
+                                blk_size = data_length;
                         else
                                 blk_size = MDEV_BLOCK_SIZE;
-			if(bs_bwrite(dev0, i, 0, buf + oft[fd].fileptr, blk_size) == OK){
-				oft[fd].fileptr += blk_size;
+			char temp_buf[MDEV_BLOCK_SIZE];	
+			memset(temp_buf, NULL, MDEV_BLOCK_SIZE);
+			memcpy(temp_buf, buf, blk_size);
+			if(bs_bwrite(dev0, i, 0, temp_buf, MDEV_BLOCK_SIZE) == OK){
+				
 				oft[fd].in.blocks[inode_count] = i;
+				buf = (char *)buf + blk_size;
+				data_length -= blk_size;
+				//printf("%d bytes written so far\n",data_length );
 				fs_setmaskbit(i);
+				i++;
 				//printf("Block written");
 			}
 			else
 				printf("Writing failed\n");
 			inode_count++;
 		}
-		return oft[fd].fileptr;
+		oft[fd].in.size = blk_limit;
+		oft[fd].fileptr = nbytes;
+		return nbytes;
 	}
 	printf("File is not in write mode\n");
 	return SYSERR;
 }
+
 #endif /* FS */

@@ -42,6 +42,7 @@ struct filetable {
   struct dirent *de;
   struct inode in;
   int flags;
+  int mode;
 };
 
 /*Struct to store directory entry*/
